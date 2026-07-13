@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор очков · FIRST Global 2026 — Igniting Innovation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14100c;
+    --bg-panel: #1d1712;
+    --bg-panel-2: #241c15;
+    --ember: #ff6a2b;
+    --ember-light: #ffb347;
+    --ash: #efe6d8;
+    --ash-muted: #9c8f7d;
+    --line: #33291f;
+    --red: #e2342f;
+    --red-dim: #2c1614;
+    --red-glow: rgba(226,52,47,0.35);
+    --blue: #3a92c9;
+    --blue-dim: #131f27;
+    --blue-glow: rgba(58,146,201,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at 20% -10%, rgba(255,106,43,0.10), transparent 45%),
+      radial-gradient(ellipse at 80% 110%, rgba(58,146,201,0.08), transparent 45%),
+      var(--bg);
+    color:var(--ash);
+    font-family:'Barlow',sans-serif;
+    min-height:100vh;
+    padding:28px 16px 60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  /* ---- Header / Scoreboard ---- */
+  header{text-align:center;margin-bottom:28px;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:.25em;text-transform:uppercase;
+    color:var(--ember-light); opacity:.85; margin-bottom:6px;
+  }
+  h1{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(34px,6vw,58px);
+    letter-spacing:.03em;
+    margin:0 0 4px;
+    color:var(--ash);
+    text-shadow:0 0 30px rgba(255,106,43,0.25);
+  }
+  h1 span{color:var(--ember);}
+  .sub{color:var(--ash-muted);font-size:14px;max-width:560px;margin:0 auto;}
+
+  .scoreboard{
+    display:grid;grid-template-columns:1fr auto 1fr;
+    gap:18px; align-items:center;
+    margin:26px auto 0; max-width:760px;
+    background:linear-gradient(180deg,var(--bg-panel),var(--bg-panel-2));
+    border:1px solid var(--line); border-radius:14px;
+    padding:18px 22px;
+  }
+  .sb-side{text-align:center;}
+  .sb-label{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;
+    text-transform:uppercase;margin-bottom:6px;
+  }
+  .sb-side.red .sb-label{color:var(--red);}
+  .sb-side.blue .sb-label{color:var(--blue);}
+  .sb-score{
+    font-family:'JetBrains Mono',monospace;font-weight:700;
+    font-size:clamp(34px,6vw,54px); line-height:1;
+  }
+  .sb-side.red .sb-score{color:var(--red);text-shadow:0 0 22px var(--red-glow);}
+  .sb-side.blue .sb-score{color:var(--blue);text-shadow:0 0 22px var(--blue-glow);}
+  .sb-vs{
+    font-family:'Bebas Neue',sans-serif;color:var(--ash-muted);font-size:20px;
+  }
+
+  /* ---- Alliance columns ---- */
+  .alliances{
+    display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:28px;
+  }
+  @media (max-width:820px){ .alliances{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--bg-panel); border:1px solid var(--line);
+    border-radius:16px; overflow:hidden;
+  }
+  .panel-head{
+    padding:16px 20px; display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--line);
+  }
+  .panel.red .panel-head{background:linear-gradient(90deg,var(--red-dim),transparent);}
+  .panel.blue .panel-head{background:linear-gradient(90deg,var(--blue-dim),transparent);}
+  .panel-title{
+    font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:.04em;
+  }
+  .panel.red .panel-title{color:var(--red);}
+  .panel.blue .panel-title{color:var(--blue);}
+  .panel-body{padding:18px 20px 22px;}
+
+  .field-row{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; margin-bottom:16px;
+  }
+  .field-label{font-size:13.5px; color:var(--ash-muted); font-weight:600;}
+
+  .stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .stepper button{
+    background:var(--bg-panel-2); border:none; color:var(--ash);
+    width:34px;height:34px; font-size:18px; cursor:pointer;
+    transition:background .15s;
+  }
+  .stepper button:hover{background:var(--ember); color:#1a1208;}
+  .stepper input{
+    width:56px; text-align:center; background:transparent; border:none;
+    color:var(--ash); font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px;
+    -moz-appearance:textfield;
+  }
+  .stepper input::-webkit-outer-spin-button,
+  .stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+
+  /* Robot card */
+  .robot{
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:12px;
+    padding:14px 16px; margin-bottom:12px;
+  }
+  .robot-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .robot-name{font-weight:700; font-size:14px; letter-spacing:.02em;}
+  .robot-name .icon{margin-right:6px;}
+
+  .pole{
+    display:flex; gap:6px; margin-bottom:10px;
+  }
+  .pole button{
+    flex:1; padding:8px 4px; font-size:11px; font-weight:700;
+    border-radius:8px; border:1px solid var(--line); background:transparent;
+    color:var(--ash-muted); cursor:pointer; text-align:center; line-height:1.25;
+    transition:all .15s;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .pole button .val{display:block; font-size:9.5px; opacity:.75; margin-top:2px;}
+  .pole button:hover{border-color:var(--ember-light);}
+  .panel.red .pole button.active{background:var(--red); border-color:var(--red); color:#fff; box-shadow:0 0 14px var(--red-glow);}
+  .panel.blue .pole button.active{background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 0 14px var(--blue-glow);}
+
+  .partner-toggle{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:12.5px; color:var(--ash-muted); font-weight:600;
+  }
+  .switch{
+    position:relative; width:38px; height:21px; border-radius:20px;
+    background:#3a3226; cursor:pointer; transition:.15s; flex-shrink:0;
+  }
+  .switch::after{
+    content:''; position:absolute; top:2px; left:2px; width:17px; height:17px;
+    border-radius:50%; background:var(--ash); transition:.15s;
+  }
+  .switch.on{background:var(--ember);}
+  .switch.on::after{transform:translateX(17px); background:#1a1208;}
+
+  .subtotal-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:9px 0; border-top:1px solid var(--line); font-size:13px; color:var(--ash-muted);
+  }
+  .subtotal-row .n{font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--ash);}
+  .multiplier-badge{
+    font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px;
+    color:var(--ember-light);
+  }
+
+  /* Global section */
+  .global-panel{
+    margin-top:20px; background:var(--bg-panel); border:1px solid var(--line);
+    border-radius:16px; padding:20px;
+  }
+  .global-head{
+    font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:.04em;
+    color:var(--ember-light); margin-bottom:14px; display:flex; align-items:center; gap:8px;
+  }
+  .global-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  @media (max-width:700px){ .global-grid{grid-template-columns:1fr;} }
+  .global-item{
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+  }
+  .global-item .field-label{margin-bottom:8px; display:block;}
+  .coop-note{font-size:11.5px; color:var(--ash-muted); margin-top:8px; line-height:1.5;}
+  .coop-badge{
+    font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--ember-light); font-size:13px;
+  }
+
+  /* Formula + fouls (collapsible) */
+  details{
+    margin-top:20px; background:var(--bg-panel); border:1px solid var(--line);
+    border-radius:16px; padding:4px 20px;
+  }
+  summary{
+    cursor:pointer; padding:14px 0; font-family:'Bebas Neue',sans-serif;
+    font-size:19px; letter-spacing:.03em; color:var(--ash); list-style:none;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:'+'; color:var(--ember); font-size:22px;}
+  details[open] summary::after{content:'–';}
+  .detail-body{padding-bottom:18px; font-size:13.5px; color:var(--ash-muted); line-height:1.7;}
+  .formula-box{
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; background:var(--bg-panel-2);
+    border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0;
+    color:var(--ember-light); white-space:pre-wrap;
+  }
+  .fouls-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px;}
+  @media (max-width:700px){ .fouls-grid{grid-template-columns:1fr;} }
+  .foul-card{background:var(--bg-panel-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px;}
+  .foul-card h4{margin:0 0 10px; font-size:13px; color:var(--ash);}
+  .card-btn-row{display:flex; gap:8px; margin-bottom:10px;}
+  .card-btn{
+    flex:1; padding:8px 6px; font-size:11px; font-weight:700; border-radius:8px;
+    border:1px solid var(--line); background:transparent; color:var(--ash-muted); cursor:pointer;
+  }
+  .card-btn.white.active{background:#efe6d8; color:#1a1208; border-color:#efe6d8;}
+  .card-btn.yellow.active{background:#e8c547; color:#1a1208; border-color:#e8c547;}
+  .card-btn.red.active{background:var(--red); color:#fff; border-color:var(--red);}
+
+  footer{text-align:center; margin-top:26px; font-size:11.5px; color:var(--ash-muted); font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">FIRST GLOBAL CHALLENGE · СЕЗОН 2026</div>
+    <h1>IGNITING <span>INNOVATION</span></h1>
+    <p class="sub">Калькулятор очков матча по правилам мануала — тушение лесных пожаров, подъём по опоре и глобальный огнетушитель.</p>
+
+    <div class="scoreboard">
+      <div class="sb-side red">
+        <div class="sb-label">Красный альянс</div>
+        <div class="sb-score" id="scoreRedTotal">0</div>
+      </div>
+      <div class="sb-vs">VS</div>
+      <div class="sb-side blue">
+        <div class="sb-label">Синий альянс</div>
+        <div class="sb-score" id="scoreBlueTotal">0</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="alliances">
+    <!-- RED ALLIANCE -->
+    <div class="panel red" data-alliance="red">
+      <div class="panel-head">
+        <div class="panel-title">Красный альянс</div>
+      </div>
+      <div class="panel-body">
+
+        <div class="field-row">
+          <span class="field-label">🔥 Пожары в SUPPRESSION UNIT</span>
+          <div class="stepper" data-field="fires">
+            <button data-dir="-1">–</button>
+            <input type="number" value="0" min="0" max="500" readonly>
+            <button data-dir="1">+</button>
+          </div>
+        </div>
+
+        <div id="robotsRed"></div>
+
+        <div class="subtotal-row"><span>Множитель подъёма</span><span class="multiplier-badge" id="multRed">×1.00</span></div>
+        <div class="subtotal-row"><span>Очки Suppression (пожары × множитель)</span><span class="n" id="suppRed">0</span></div>
+        <div class="subtotal-row"><span>Очки Partner Climb</span><span class="n" id="partnerRed">0</span></div>
+        <div class="subtotal-row"><span>Очки Extinguisher (общие)</span><span class="n" id="extRedShow">0</span></div>
+        <div class="subtotal-row"><span>Бонус Coopertition (общий)</span><span class="n" id="coopRedShow">0</span></div>
+        <div class="subtotal-row"><span>Получено штрафов от соперника</span><span class="n" id="penRed">0</span></div>
+      </div>
+    </div>
+
+    <!-- BLUE ALLIANCE -->
+    <div class="panel blue" data-alliance="blue">
+      <div class="panel-head">
+        <div class="panel-title">Синий альянс</div>
+      </div>
+      <div class="panel-body">
+
+        <div class="field-row">
+          <span class="field-label">🔥 Пожары в SUPPRESSION UNIT</span>
+          <div class="stepper" data-field="fires">
+            <button data-dir="-1">–</button>
+            <input type="number" value="0" min="0" max="500" readonly>
+            <button data-dir="1">+</button>
+          </div>
+        </div>
+
+        <div id="robotsBlue"></div>
+
+        <div class="subtotal-row"><span>Множитель подъёма</span><span class="multiplier-badge" id="multBlue">×1.00</span></div>
+        <div class="subtotal-row"><span>Очки Suppression (пожары × множитель)</span><span class="n" id="suppBlue">0</span></div>
+        <div class="subtotal-row"><span>Очки Partner Climb</span><span class="n" id="partnerBlue">0</span></div>
+        <div class="subtotal-row"><span>Очки Extinguisher (общие)</span><span class="n" id="extBlueShow">0</span></div>
+        <div class="subtotal-row"><span>Бонус Coopertition (общий)</span><span class="n" id="coopBlueShow">0</span></div>
+        <div class="subtotal-row"><span>Получено штрафов от соперника</span><span class="n" id="penBlue">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GLOBAL ALLIANCE -->
+  <div class="global-panel">
+    <div class="global-head">🌍 Глобальный альянс (общие элементы — начисляются обоим альянсам)</div>
+    <div class="global-grid">
+      <div class="global-item">
+        <span class="field-label">Пожары, потушенные в EXTINGUISHER</span>
+        <div class="stepper" id="extStepper" style="margin-top:8px;">
+          <button data-dir="-1">–</button>
+          <input type="number" id="extValue" value="0" min="0" max="500" readonly>
+          <button data-dir="1">+</button>
+        </div>
+      </div>
+      <div class="global-item">
+        <span class="field-label">Роботов, полностью в ЗОНЕ 3 (из 6)</span>
+        <div class="stepper" id="coopStepper" style="margin-top:8px;">
+          <button data-dir="-1">–</button>
+          <input type="number" id="coopValue" value="0" min="0" max="6" readonly>
+          <button data-dir="1">+</button>
+        </div>
+        <div class="coop-note">Бонус <span class="coop-badge" id="coopBonusLabel">0</span> очков: 4→10, 5→25, 6→40</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMULA -->
+  <details>
+    <summary>Формула подсчёта очков (Таблица 3.6 мануала)</summary>
+    <div class="detail-body">
+      <div class="formula-box">Множитель подъёма = 1 + Σ(приращение каждого робота)
+  Контакт = +0.05 · Зона 1 = +0.10 · Зона 2 = +0.20 · Зона 3 = +0.30
+
+Очки альянса = round(Пожары SUPPRESSION × Множитель подъёма)
+              + Partner Climb (25 за робота, поддержанного партнёром)
+              + Extinguisher (общий, 1 очко за WILDFIRE)
+              + Coopertition Bonus (общий: 4→10 / 5→25 / 6→40)
+              + штрафы, назначенные сопернику</div>
+      <p>Все дробные результаты округляются до ближайшего целого. Очки Extinguisher и бонус Coopertition — общие для матча и прибавляются <b>одинаково</b> обоим региональным альянсам, так как их зарабатывает единый «Глобальный альянс» из 6 команд.</p>
+    </div>
+  </details>
+
+  <!-- FOULS -->
+  <details>
+    <summary>Штрафы и карточки (опционально)</summary>
+    <div class="detail-body">
+      <p>Мелкий фол = 5% очков команды-нарушителя переходит сопернику. Серьёзный фол = 10%. Белая/красная карточка = команда получает 0 очков за матч.</p>
+      <div class="fouls-grid">
+        <div class="foul-card">
+          <h4 style="color:var(--red);">Нарушения красного альянса (в пользу синего)</h4>
+          <div class="field-row"><span class="field-label">Мелкие фолы</span>
+            <div class="stepper" data-fcount="red-minor"><button data-dir="-1">–</button><input type="number" value="0" min="0" readonly><button data-dir="1">+</button></div>
+          </div>
+          <div class="field-row"><span class="field-label">Серьёзные фолы</span>
+            <div class="stepper" data-fcount="red-major"><button data-dir="-1">–</button><input type="number" value="0" min="0" readonly><button data-dir="1">+</button></div>
+          </div>
+          <div class="card-btn-row" data-card="red">
+            <button class="card-btn white" data-card-val="0">Нет</button>
+            <button class="card-btn white" data-card-val="white">Белая</button>
+            <button class="card-btn yellow" data-card-val="yellow">Жёлтая</button>
+            <button class="card-btn red" data-card-val="red">Красная</button>
+          </div>
+        </div>
+        <div class="foul-card">
+          <h4 style="color:var(--blue);">Нарушения синего альянса (в пользу красного)</h4>
+          <div class="field-row"><span class="field-label">Мелкие фолы</span>
+            <div class="stepper" data-fcount="blue-minor"><button data-dir="-1">–</button><input type="number" value="0" min="0" readonly><button data-dir="1">+</button></div>
+          </div>
+          <div class="field-row"><span class="field-label">Серьёзные фолы</span>
+            <div class="stepper" data-fcount="blue-major"><button data-dir="-1">–</button><input type="number" value="0" min="0" readonly><button data-dir="1">+</button></div>
+          </div>
+          <div class="card-btn-row" data-card="blue">
+            <button class="card-btn white" data-card-val="0">Нет</button>
+            <button class="card-btn white" data-card-val="white">Белая</button>
+            <button class="card-btn yellow" data-card-val="yellow">Жёлтая</button>
+            <button class="card-btn red" data-card-val="red">Красная</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <footer>СДЕЛАНО ПО МАНУАЛУ FIRST GLOBAL CHALLENGE 2026 · IGNITING INNOVATION ROBOTICS CHALLENGE</footer>
+</div>
+
+<script>
+const ZONES = [
+  {key:'none', label:'Нет', val:0},
+  {key:'contact', label:'Контакт', val:0.05},
+  {key:'zone1', label:'Зона 1', val:0.10},
+  {key:'zone2', label:'Зона 2', val:0.20},
+  {key:'zone3', label:'Зона 3', val:0.30},
+];
+
+const state = {
+  red:   { fires:0, robots:[{zone:'none',partner:false},{zone:'none',partner:false},{zone:'none',partner:false}], minor:0, major:0, card:0 },
+  blue:  { fires:0, robots:[{zone:'none',partner:false},{zone:'none',partner:false},{zone:'none',partner:false}], minor:0, major:0, card:0 },
+  ext:0, coop:0
+};
+
+function buildRobots(alliance){
+  const container = document.getElementById(alliance === 'red' ? 'robotsRed' : 'robotsBlue');
+  container.innerHTML = '';
+  state[alliance].robots.forEach((r, idx) => {
+    const card = document.createElement('div');
+    card.className = 'robot';
+    card.innerHTML = `
+      <div class="robot-head">
+        <div class="robot-name"><span class="icon">🤖</span>Робот ${idx+1}</div>
+      </div>
+      <div class="pole" data-robot="${idx}">
+        ${ZONES.map(z => `<button data-zone="${z.key}" class="${r.zone===z.key?'active':''}">${z.label}<span class="val">${z.val===0?'—':'+'+z.val}</span></button>`).join('')}
+      </div>
+      <div class="partner-toggle">
+        <span>Partner Climb (поддерживает партнёра, +25)</span>
+        <div class="switch ${r.partner?'on':''}" data-partner="${idx}"></div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  container.querySelectorAll('.pole').forEach(pole => {
+    pole.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ridx = +pole.dataset.robot;
+        state[alliance].robots[ridx].zone = btn.dataset.zone;
+        buildRobots(alliance);
+        recalc();
+      });
+    });
+  });
+  container.querySelectorAll('[data-partner]').forEach(sw => {
+    sw.addEventListener('click', () => {
+      const ridx = +sw.dataset.partner;
+      state[alliance].robots[ridx].partner = !state[alliance].robots[ridx].partner;
+      buildRobots(alliance);
+      recalc();
+    });
+  });
+}
+
+function zoneVal(key){ return ZONES.find(z=>z.key===key).val; }
+
+function computeAlliance(alliance){
+  const a = state[alliance];
+  const multiplier = 1 + a.robots.reduce((s,r)=>s+zoneVal(r.zone),0);
+  const suppression = Math.round(a.fires * multiplier);
+  const partnerPts = a.robots.filter(r=>r.partner).length * 25;
+  return {multiplier, suppression, partnerPts};
+}
+
+function coopBonus(n){
+  if(n>=6) return 40;
+  if(n>=5) return 25;
+  if(n>=4) return 10;
+  return 0;
+}
+
+function recalc(){
+  const red = computeAlliance('red');
+  const blue = computeAlliance('blue');
+  const coop = coopBonus(state.coop);
+
+  // penalties: offending alliance's OWN base score (before penalties) percentage goes to opponent
+  const redBase = red.suppression + red.partnerPts + state.ext + coop;
+  const blueBase = blue.suppression + blue.partnerPts + state.ext + coop;
+  const redPenaltyToBlue = Math.round(redBase * (state.red.minor*0.05 + state.red.major*0.10));
+  const bluePenaltyToRed = Math.round(blueBase * (state.blue.minor*0.05 + state.blue.major*0.10));
+
+  let redTotal = redBase + bluePenaltyToRed;
+  let blueTotal = blueBase + redPenaltyToBlue;
+
+  if(state.red.card === 'white' || state.red.card === 'red') redTotal = 0;
+  if(state.blue.card === 'white' || state.blue.card === 'red') blueTotal = 0;
+
+  document.getElementById('multRed').textContent = '×' + red.multiplier.toFixed(2);
+  document.getElementById('multBlue').textContent = '×' + blue.multiplier.toFixed(2);
+  document.getElementById('suppRed').textContent = red.suppression;
+  document.getElementById('suppBlue').textContent = blue.suppression;
+  document.getElementById('partnerRed').textContent = red.partnerPts;
+  document.getElementById('partnerBlue').textContent = blue.partnerPts;
+  document.getElementById('extRedShow').textContent = state.ext;
+  document.getElementById('extBlueShow').textContent = state.ext;
+  document.getElementById('coopRedShow').textContent = coop;
+  document.getElementById('coopBlueShow').textContent = coop;
+  document.getElementById('penRed').textContent = bluePenaltyToRed;
+  document.getElementById('penBlue').textContent = redPenaltyToBlue;
+  document.getElementById('coopBonusLabel').textContent = coop;
+
+  document.getElementById('scoreRedTotal').textContent = redTotal;
+  document.getElementById('scoreBlueTotal').textContent = blueTotal;
+}
+
+// Fires steppers (per alliance)
+document.querySelectorAll('.panel').forEach(panel => {
+  const alliance = panel.dataset.alliance;
+  const stepper = panel.querySelector('[data-field="fires"]');
+  const input = stepper.querySelector('input');
+  stepper.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dir = +btn.dataset.dir;
+      state[alliance].fires = Math.max(0, Math.min(500, state[alliance].fires + dir));
+      input.value = state[alliance].fires;
+      recalc();
+    });
+  });
+});
+
+// Global steppers
+function wireGlobalStepper(id, key, max){
+  const stepper = document.getElementById(id);
+  const input = document.getElementById(key === 'ext' ? 'extValue' : 'coopValue');
+  stepper.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dir = +btn.dataset.dir;
+      state[key] = Math.max(0, Math.min(max, state[key] + dir));
+      input.value = state[key];
+      recalc();
+    });
+  });
+}
+wireGlobalStepper('extStepper','ext',500);
+wireGlobalStepper('coopStepper','coop',6);
+
+// Foul counters
+document.querySelectorAll('[data-fcount]').forEach(stepper => {
+  const [alliance, type] = stepper.dataset.fcount.split('-');
+  const input = stepper.querySelector('input');
+  stepper.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dir = +btn.dataset.dir;
+      state[alliance][type] = Math.max(0, state[alliance][type] + dir);
+      input.value = state[alliance][type];
+      recalc();
+    });
+  });
+});
+
+// Card selectors
+document.querySelectorAll('[data-card]').forEach(group => {
+  const alliance = group.dataset.card;
+  group.querySelectorAll('.card-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state[alliance].card = btn.dataset.cardVal;
+      group.querySelectorAll('.card-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      recalc();
+    });
+  });
+  group.querySelector('[data-card-val="0"]').classList.add('active');
+});
+
+buildRobots('red');
+buildRobots('blue');
+recalc();
+</script>
+</body>
+</html>
